@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadCloudWatchLogsForAnalysis",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogGroups",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "InvokeConfiguredBedrockModel",
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel"],
+      "Resource": "*"
+    }
+  ]
+}
