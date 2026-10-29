@@ -19,13 +19,13 @@ class CloudWatchRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": settings.app_name}
+    return {"status": "ok", "service": settings.app_name, "ai_provider": settings.ai_provider}
 
 @app.post("/api/analyze")
 def analyze_endpoint(payload: AnalyzeRequest):
     try:
         return analyze(payload.logs, payload.use_ai)
-    except Exception as exc:
+    except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
 @app.get("/api/aws/log-groups")
@@ -44,12 +44,22 @@ def aws_analyze(payload: CloudWatchRequest):
         return analyze(logs, payload.use_ai)
     except HTTPException:
         raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"CloudWatch analysis failed: {type(exc).__name__}: {exc}")
+        raise HTTPException(status_code=502, detail=f"CloudWatch analysis failed: {type(exc).__name__}: {exc}")
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return HTML
+    return HTML.replace("__AI_LABEL__", AI_LABELS[settings.ai_provider])
+
+AI_LABELS = {
+    "hybrid": "Use AI (Ollama first, Bedrock fallback)",
+    "ollama": "Use AI (local Ollama)",
+    "bedrock": "Use AI (Amazon Bedrock)",
+    "none": "Use AI (disabled by AI_PROVIDER=none)",
+}
+
 HTML = r"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Log Analyzer</title>
@@ -64,7 +74,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#08101d;padding:12px;
 </style></head><body><main>
 <h1>AI Log Analyzer</h1><div class="muted">Local-first SRE investigation · no automatic remediation</div>
 <section class="card"><h2>Analyze pasted logs</h2><textarea id="logs" placeholder="Paste application or infrastructure logs here..."></textarea><br>
-<label><input id="useai" type="checkbox" checked> Use AI (Ollama first, Bedrock fallback)</label><br>
+<label><input id="useai" type="checkbox" checked> __AI_LABEL__</label><br>
 <button onclick="analyzeText()">Analyze logs</button><button onclick="document.getElementById('logs').value=sample">Load sample</button></section>
 <section class="card"><h2>Analyze AWS CloudWatch</h2><div class="grid">
 <div><label>Log group</label><br><input id="group" style="width:95%" placeholder="/aws/ecs/my-service"></div>
