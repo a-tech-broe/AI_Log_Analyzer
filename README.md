@@ -94,7 +94,7 @@ Compose runs the API and Ollama locally and mounts your AWS config read-only.
 ```bash
 cp .env.example .env
 # Edit .env; set AWS_PROFILE and AWS_REGION
-docker compose up --build -d
+docker compose up --build -d   # production: ENV_FILE=.env.production docker compose up --build -d
 docker compose exec ollama ollama pull qwen2.5:3b
 ```
 
@@ -104,7 +104,34 @@ Compose mounts `${HOME}/.aws` read-only. If your AWS credentials use SSO, sign i
 
 ## 3. Configuration
 
-All settings come from environment variables (see `.env.example`):
+### Local vs. production
+
+| Environment | Env file | `AI_PROVIDER` | Behavior |
+|---|---|---|---|
+| Local development | `.env` (from `.env.example`) | `ollama` | Local model only; never calls Bedrock, so no cloud AI charges |
+| Production | `.env.production` (from `.env.production.example`) | `hybrid` | Ollama first, Bedrock fallback if Ollama is down or returns unusable output |
+
+```bash
+# Local
+cp .env.example .env
+docker compose up --build -d          # or run uvicorn / the CLI directly
+
+# Production
+cp .env.production.example .env.production
+ENV_FILE=.env.production docker compose up --build -d
+```
+
+Both real env files are git-ignored; only the `*.example` templates are committed. In production, leave `AWS_PROFILE` empty so boto3 uses the task role or instance profile. Check which provider is active with `curl localhost:8000/health`.
+
+To try hybrid behavior locally for a single run without editing `.env`:
+
+```bash
+AI_PROVIDER=hybrid python -m app.cli file samples/sample.log
+```
+
+### Settings
+
+All settings come from environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
@@ -112,7 +139,7 @@ All settings come from environment variables (see `.env.example`):
 | `AWS_PROFILE` | _(empty)_ | Named AWS profile; empty uses the default credential chain |
 | `AWS_REGION` | `us-east-1` | Region for CloudWatch and Bedrock |
 | `AWS_ENDPOINT_URL` | _(empty)_ | Custom CloudWatch Logs endpoint (e.g. LocalStack) |
-| `AI_PROVIDER` | `hybrid` | `hybrid`, `ollama`, `bedrock`, or `none`. Any other value fails at startup |
+| `AI_PROVIDER` | `hybrid` | `hybrid`, `ollama`, `bedrock`, or `none`. Any other value fails at startup. `.env.example` sets `ollama` |
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama server URL |
 | `OLLAMA_MODEL` | `qwen2.5:3b` | Ollama model name |
 | `BEDROCK_MODEL_ID` | `anthropic.claude-3-haiku-20240307-v1:0` | Bedrock model or inference profile ID |

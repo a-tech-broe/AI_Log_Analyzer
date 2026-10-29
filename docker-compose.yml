@@ -4,11 +4,10 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ${ENV_FILE:-.env}
     volumes:
       - "${HOME}/.aws:/home/appuser/.aws:ro"
     environment:
-      AWS_PROFILE: ${AWS_PROFILE:-default}
       OLLAMA_URL: http://ollama:11434
     depends_on:
       - ollama

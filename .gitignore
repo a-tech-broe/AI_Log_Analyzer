@@ -221,4 +221,5 @@ __marimo__/
 
 # Project: keep bundled sample logs and the env template under version control
 !samples/*.log
-!.env.example
+.env.*
+!.env*.example
