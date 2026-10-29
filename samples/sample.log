@@ -1,0 +1,9 @@
+2026-10-28T10:00:01Z INFO Payments API started
+2026-10-28T10:01:02Z WARN Database connection pool exhausted
+2026-10-28T10:01:03Z ERROR Database connection timeout after 3000ms
+2026-10-28T10:01:04Z WARN Retry attempt 3 failed
+2026-10-28T10:01:05Z ERROR Unable to process transaction
+2026-10-28T10:01:06Z ERROR upstream request timed out calling ledger-service
+2026-10-28T10:01:07Z INFO Retrying with password=hunter2 and Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.abc.def
+2026-10-28T10:01:09Z FATAL java.lang.OutOfMemoryError: Java heap space
+2026-10-28T10:01:10Z WARN container payments-api restarting (exit code 137)

@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project: keep bundled sample logs and the env template under version control
+!samples/*.log
+!.env.example
